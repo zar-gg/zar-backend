@@ -1,0 +1,5 @@
+pip install createflaskapp
+create-flask-app my-app
+cd my-app
+# activate venv
+python run.py
