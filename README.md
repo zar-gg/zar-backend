@@ -1,2 +1,2 @@
 # zar-backend
-Zar bus kar Try Hardheheh hahahah zAr is a noob in valo
+Flask based backend for the site zar.gg (an op.gg clone built for learning purposes)
