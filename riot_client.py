@@ -37,11 +37,10 @@ class RiotClient:
         url = self._get_url(1, region, name)
         resp = requests.get(url)
 
-        # if you encounter a "year is out of range" error the timestamp
-        # may be in milliseconds, try `ts /= 1000` in that case
         timestamp = resp.json()["revisionDate"]
         unix_val = datetime.fromtimestamp(timestamp/1000).date()
         print(unix_val)
+        
         return resp.json()
         
     def get_clash_details(self, region):
