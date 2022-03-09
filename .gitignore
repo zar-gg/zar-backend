@@ -2,6 +2,7 @@
 config/
 ddragon/
 static/
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
