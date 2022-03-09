@@ -1,5 +1,7 @@
-test_frontend/
+# local-only files
 config/
+ddragon/
+static/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

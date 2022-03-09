@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "zar_gg_test_db",
+            "database": "${workspaceFolder:zar-backend}/test_db/example.db"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}
