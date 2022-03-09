@@ -1,0 +1,23 @@
+.player_list_ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+.player_card {
+    margin: 5px;
+}
+
+#profile_icon {
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 2px;
+    width: 50px;
+}
+
+#region-select {
+    background-color: white;
+}
+
+body{
+    background-color: #3480eb;
+}
