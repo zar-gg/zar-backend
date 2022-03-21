@@ -18,3 +18,25 @@ if __name__ == '__main__':
                     UNIQUE(region, enc_puuid, name)
                 )
                 ''')
+
+    cur.execute('''CREATE TABLE ranked_stats
+                (   
+                    enc_puuid text PRIMARY KEY,
+                    flex_tier text,
+                    flex_rank text,
+                    flex_wins integer,
+                    flex_losses integer,
+                    flex_lp integer,
+                    flex_hotstreak,
+                    solo_tier text,
+                    solo_rank text,
+                    solo_wins integer,
+                    solo_losses integer,
+                    solo_lp integer,
+                    solo_hotstreak text,
+                    FOREIGN KEY (enc_puuid)
+                    REFERENCES summoners (enc_puuid)
+                )
+                ''') 
+
+    conn.close()

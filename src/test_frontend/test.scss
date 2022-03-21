@@ -1,0 +1,129 @@
+$background-color: #006fc2;
+$search-background: lighten($background-color, 15%);
+$search-background-active: lighten($background-color, 10%);
+$player-card-background: $background-color; 
+$player-card-active: lighten($background-color, 10%);
+$search-color: darken(#fff, 10%);
+$search-btn-active: $background-color;
+$search-line-height: 1;
+$search-font-size: 20px;
+$search-input-height: 50px;
+$search-input-padding: 0px 12px;
+$search-input-icon-size: $search-font-size*$search-line-height;
+$region-font-size: 18px;
+
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance:none;
+}
+
+@mixin input-placeholder {
+    &.placeholder { @content; }
+    &:-moz-placeholder { @content; }
+    &::-moz-placeholder { @content; }
+    &:-ms-input-placeholder { @content; }
+    &::-webkit-input-placeholder { @content; }
+}
+
+.player-card {
+    background-color: $background-color;
+    color: black;
+    margin: 6px;
+    cursor: pointer;
+    transition: background-color 0.5s, width 0.75s, height 0.75s;
+
+    &:focus, &:hover {
+        background-color: $player-card-active;
+    }
+}
+
+.card-image {
+    padding: 10px;
+}
+
+.card-txt {
+    color: black;
+    padding: 10px;
+}
+
+.profile-icon {
+    border-radius: 50%;
+    width: 75px;
+}
+
+.player-name-search, .player-search-btn{
+    font-size: $search-font-size;
+    line-height: $search-line-height;
+    background: $search-background;
+    color: $search-color;
+    border: none;
+    outline: none;
+    height: $search-input-height;
+    transition: background-color 0.5s, color 0.5s;
+
+}
+
+.player-name-search {
+    padding: $search-input-padding;
+
+    &:focus, &:hover {
+        background-color: $search-background-active;
+        + .player-search-btn {
+          background-color: $search-background-active;
+        }
+    }
+
+    @include input-placeholder {
+        color: $search-color;
+        font-style: italic;
+      }
+}
+
+.player-search-btn {
+  width: 50px;
+  padding: 0;
+  text-align: center;
+
+  &:hover, &:focus {
+    color: $search-btn-active;
+  }
+  &:active {
+    color: darken($search-btn-active, 20%);
+  }
+}
+
+.region-selector {
+    font-size: $region-font-size;
+    line-height: $search-line-height;
+    width: 92%;
+    padding: 4px;
+    text-align: center;
+    background: $search-background;
+    color: $search-color;
+    border: none;
+    outline: none;
+    height: $search-input-height;
+    transition: background-color 0.5s, color 0.5s;
+
+    &:focus, &:hover {
+        background-color: $search-background-active;
+    }
+}
+
+body {
+    background-color: $background-color;
+}
+
+@media screen and (max-width: 4048px) {    
+    .home-image {
+        height: 30%;
+    }
+}
+
+@media screen and (min-width : 1000px) and (max-width : 3024px) { 
+    .home-image {
+        height: 50%;
+    }
+}

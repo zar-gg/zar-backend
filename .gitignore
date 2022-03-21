@@ -1,7 +1,7 @@
 # local-only files
 config/
 ddragon/
-static/
+fontawesome/
 .vscode/
 
 # Byte-compiled / optimized / DLL files

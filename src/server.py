@@ -2,6 +2,7 @@ from riot_client import RiotClient
 from flask import Flask, request
 from flask_caching import Cache
 from flask_cors import CORS
+import requests
 import json
 
 config = {
@@ -24,9 +25,17 @@ def server_status():
 @app.route("/get-player/<player_name>", methods=["GET"])
 # @cache.memoize(timeout=90)
 def get_player(player_name):
-    print('Calling riot api')
     return rc.get_player(request.args.get('region'), 
                          player_name)
+
+
+@app.route("/player/<player_name>", methods=["GET"])
+# @cache.memoize(timeout=90)
+def player(player_name):
+    print('Calling riot api')
+    return rc.prepare_player(request.args.get('region'), 
+                         player_name)
+
 
 @app.route("/get-players/<key>", methods=["GET"])
 # @cache.memoize(timeout=90)

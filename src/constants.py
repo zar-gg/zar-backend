@@ -23,7 +23,8 @@ class Constants:
             "ranked_flex" : "440",
             "clash"       : "700",
         },
-        "ddragon_versions": "https://ddragon.leagueoflegends.com/api/versions.json",
-        "ddragon_region_version": "https://ddragon.leagueoflegends.com/realms/{}.json", #region_name
+        "ddragon_versions": "https://ddragon.leagueoflegends.com/api/versions.json", #returns array containing all versions
+        "ddragon_region_version": "https://ddragon.leagueoflegends.com/realms/{}.json", #region_name (euw/na/kr)
         "ddragon_endpoint": "http://ddragon.leagueoflegends.com/cdn/{}/data/en_US/", #ddragon version
     }
+    

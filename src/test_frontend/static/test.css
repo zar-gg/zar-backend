@@ -1,0 +1,118 @@
+input[type=search]::-webkit-search-decoration,
+input[type=search]::-webkit-search-cancel-button,
+input[type=search]::-webkit-search-results-button,
+input[type=search]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+}
+
+.player-card {
+  background-color: #006fc2;
+  color: black;
+  margin: 6px;
+  cursor: pointer;
+  transition: background-color 0.5s, width 0.75s, height 0.75s;
+}
+.player-card:focus, .player-card:hover {
+  background-color: #008cf5;
+}
+
+.card-image {
+  padding: 10px;
+}
+
+.card-txt {
+  color: black;
+  padding: 10px;
+}
+
+.profile-icon {
+  border-radius: 50%;
+  width: 75px;
+}
+
+.player-name-search, .player-search-btn {
+  font-size: 20px;
+  line-height: 1;
+  background: #1099ff;
+  color: #e6e6e6;
+  border: none;
+  outline: none;
+  height: 50px;
+  transition: background-color 0.5s, color 0.5s;
+}
+
+.player-name-search {
+  padding: 0px 12px;
+}
+.player-name-search:focus, .player-name-search:hover {
+  background-color: #008cf5;
+}
+.player-name-search:focus + .player-search-btn, .player-name-search:hover + .player-search-btn {
+  background-color: #008cf5;
+}
+.player-name-search.placeholder {
+  color: #e6e6e6;
+  font-style: italic;
+}
+.player-name-search:-moz-placeholder {
+  color: #e6e6e6;
+  font-style: italic;
+}
+.player-name-search::-moz-placeholder {
+  color: #e6e6e6;
+  font-style: italic;
+}
+.player-name-search:-ms-input-placeholder {
+  color: #e6e6e6;
+  font-style: italic;
+}
+.player-name-search::-webkit-input-placeholder {
+  color: #e6e6e6;
+  font-style: italic;
+}
+
+.player-search-btn {
+  width: 50px;
+  padding: 0;
+  text-align: center;
+}
+.player-search-btn:hover, .player-search-btn:focus {
+  color: #006fc2;
+}
+.player-search-btn:active {
+  color: #00355c;
+}
+
+.region-selector {
+  font-size: 18px;
+  line-height: 1;
+  width: 92%;
+  padding: 4px;
+  text-align: center;
+  background: #1099ff;
+  color: #e6e6e6;
+  border: none;
+  outline: none;
+  height: 50px;
+  transition: background-color 0.5s, color 0.5s;
+}
+.region-selector:focus, .region-selector:hover {
+  background-color: #008cf5;
+}
+
+body {
+  background-color: #006fc2;
+}
+
+@media screen and (max-width: 4048px) {
+  .home-image {
+    height: 30%;
+  }
+}
+@media screen and (min-width: 1000px) and (max-width: 3024px) {
+  .home-image {
+    height: 50%;
+  }
+}
+
+/*# sourceMappingURL=test.css.map */
