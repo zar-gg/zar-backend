@@ -8,10 +8,13 @@ function getPlayerDetails(){
     let url = `http://localhost:8000/get-player/${name}?region=${region}`
 
     fetch(url)
-    .then(response => response.json())
+    .then(response => {
+        console.log(response.status);
+        if (response.status == 404){
+            window.location.href = `http://localhost:8088/not-found`
+        }
+    })
     .then(data => {
         console.log(data);
-        let player_details = document.getElementById('player_details')
-        player_details.innerHTML = data
-    });
+    })
 }

@@ -46,3 +46,8 @@ function gotoProfile(name){
     // console.log(document.cookie)
     window.location.href = `http://localhost:8088/player-stats/${name}?region=${document.getElementById("region_selector").value}`
 }
+
+function searchProfile(){
+    const name = document.getElementById("player_name_search").value
+    window.location.href = `http://localhost:8088/player-stats/${name}?region=${document.getElementById("region_selector").value}`
+}
