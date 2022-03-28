@@ -39,4 +39,13 @@ if __name__ == '__main__':
                 )
                 ''') 
 
+    cur.execute('''CREATE TABLE match_history
+                (   
+                    enc_puuid text PRIMARY KEY,
+                    last_updated integer,
+                    FOREIGN KEY (enc_puuid)
+                    REFERENCES summoners (enc_puuid)
+                )
+                ''')
+
     conn.close()

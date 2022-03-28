@@ -2,17 +2,10 @@ from utils import query_gen
 import sqlite3
 
 def insert_or_update(table, values):
-
     conn = sqlite3.connect('./test_db/test.db')
     cur = conn.cursor()
     
     query = query_gen('replace', table, len(values))
-    # cur.execute(
-    #     '''
-    #     REPLACE INTO {} VALUES 
-    #     (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    #     '''.format(table), values
-    # )   
     cur.execute(query, values)     
     
     conn.commit()

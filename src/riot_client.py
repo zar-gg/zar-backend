@@ -7,7 +7,6 @@ import sqlite3
 from db_utils import insert_or_update, player_search, match_players
 import json
 from flask import Response
-from utils import prepare_player_obj
 
 class RiotClient:
     def __init__(self):
@@ -57,15 +56,41 @@ class RiotClient:
         return "{}{}{}".format(base_url, endpoint, query_params)
 
 
-    def get_match_history(self, region, puuid, queue_type=None, num_matches=50):
+    def _prepare_player_obj(data, stats):
+        player_obj = {}
+
+        player_obj['enc_puuid'] = data['puuid']
+        player_obj['enc_id'] = data['id']
+        player_obj['name'] = data['name']
+        player_obj['level'] = data['summonerLevel']
+        player_obj['iconId'] = data['profileIconId']
+        player_obj['stats'] = stats
+
+        return player_obj
+
+
+    def get_match_history(self, region, puuid, queue_type=None, num_matches=100):
         '''
         Gets match history for the specified player using their encrypted puuid
         '''
 
-        url = self._get_url(2, region, puuid, queue=queue_type, count=num_matches)
-        resp = requests.get(url)
+        matches = []
+        count = 0
 
-        return resp.json()
+        # while True:
+        url = self._get_url(2, region, puuid, queue=queue_type, count=num_matches, start=count)
+        print(url)
+            # resp = requests.get(url)
+            
+            # if len(resp.json()) < 100:
+            #     matches.append(resp.json())
+            #     break
+
+            # matches.append(resp.json())
+
+            # count+=100
+        # print(len(matches))
+        return json.dumps(matches)
 
 
     def get_ranked_stats(self, region, enc_puuid, enc_id):
@@ -103,7 +128,7 @@ class RiotClient:
             
             return combined_stats
         else:
-            return []
+            return {}
 
 
     def get_player(self, region, name):
@@ -114,7 +139,7 @@ class RiotClient:
 
         table = 'summoners'
         
-        # if datetime.now() - last_updated > '2days':
+        # if datetime.now() - last_updated > '3days':
         try:
             url = self._get_url(1, region, name)
             # player_search(table, name)
@@ -123,7 +148,7 @@ class RiotClient:
                 data = riot_response.json()
                 
                 values = (
-                    region, data['puuid'], data['name'], data['id'], 
+                    region, data['puuid'], data['name'], data['id'],
                     data['accountId'], data['summonerLevel'], data['profileIconId'],
                     data['revisionDate'], int(datetime.now().timestamp()*1000)
                 )
@@ -133,7 +158,7 @@ class RiotClient:
                 stats = self.get_ranked_stats(region, data['puuid'], data['id'])
                 # match_list = self.get_match_history(region, data['puuid'])
                 
-                player_obj = prepare_player_obj(data, stats)
+                player_obj = self._prepare_player_obj(data, stats)
                 
                 response = Response(json.dumps(player_obj), mimetype='application/json')
                 response.status_code = 200
@@ -154,10 +179,7 @@ class RiotClient:
                 response.status_code = 500
                 return response
             
-
         except Exception as e:
-            # response = {}
-            print(e)
             response = Response(json.dumps({"msg": "Internal Server Error"}), mimetype='application/json')
             response.status_code = 500
             return response

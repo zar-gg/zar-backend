@@ -54,7 +54,7 @@ def get_ranked_stats(player_id):
 def get_matches(puuid):
     return json.dumps(rc.get_match_history(request.args.get('region', 'euw'), puuid,
                                            request.args.get('queue', None), 
-                                           request.args.get('count', 50)))
+                                           request.args.get('count', 100)))
 
 @app.route("/clash-details", methods=["GET"])
 # @cache.cached(timeout=90)
