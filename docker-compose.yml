@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+
+  backend:
+    build: .
+    image: zar_backend
+    container_name: zar-backend
+    ports:
+      - 8000:8000
+    command: python src/server.py
+    volumes:
+      - .:/usr/zar-gg/
+    env_file:
+      - .env
+
+  frontend:
+    build: ./test_frontend
+    image: zar_frontend
+    container_name: zar-frontend
+    ports:
+      - 8088:8088
+    command: python src/frontend_server.py
+ 
+  worker:
+    build: .
+    command: celery --app src.tasks.celery worker --loglevel=info --logfile=src/logs/celery.log
+    volumes:
+      - .:/usr/zar-gg
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - backend
+      - redis
+
+  dashboard:
+    build: .
+    command: celery --broker=redis://redis:6379/0 --app src.tasks.celery flower --port=5555 
+    ports:
+      - 5556:5555
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    depends_on:
+      - backend
+      - redis
+      - worker
+
+  redis:
+    image: redis:6-alpine
