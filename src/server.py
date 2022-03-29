@@ -26,7 +26,7 @@ def server_status():
 @app.route("/get-player/<player_name>", methods=["GET"])
 # @cache.memoize(timeout=90)
 def get_player(player_name):
-    create_task.delay(1)
+    # create_task.delay(1)
     return rc.get_player(request.args.get('region'), 
                          player_name)
 
