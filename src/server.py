@@ -2,6 +2,7 @@ from riot_client import RiotClient
 from flask import Flask, request
 from flask_caching import Cache
 from flask_cors import CORS
+from tasks import create_task
 import requests
 import json
 
@@ -25,6 +26,7 @@ def server_status():
 @app.route("/get-player/<player_name>", methods=["GET"])
 # @cache.memoize(timeout=90)
 def get_player(player_name):
+    create_task.delay(1)
     return rc.get_player(request.args.get('region'), 
                          player_name)
 
@@ -54,7 +56,7 @@ def get_ranked_stats(player_id):
 def get_matches(puuid):
     return json.dumps(rc.get_match_history(request.args.get('region', 'euw'), puuid,
                                            request.args.get('queue', None), 
-                                           request.args.get('count', 100)))
+                                           request.args.get('count', 5)))
 
 @app.route("/clash-details", methods=["GET"])
 # @cache.cached(timeout=90)

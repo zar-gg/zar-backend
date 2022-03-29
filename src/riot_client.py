@@ -4,7 +4,7 @@ from datetime import datetime
 import requests
 import config
 import sqlite3
-from db_utils import insert_or_update, player_search, match_players
+from db_utils import insert, player_search, match_players
 import json
 from flask import Response
 
@@ -40,7 +40,7 @@ class RiotClient:
         Generates the required url based on id
         '''
     
-        if id == 2:
+        if id == 2 or id == 5:
             base_url = self._base_url.format(Constants.constant_dict['regions_match_history'][region])
         else:
             base_url = self._base_url.format(Constants.constant_dict['regions'][region])
@@ -56,7 +56,7 @@ class RiotClient:
         return "{}{}{}".format(base_url, endpoint, query_params)
 
 
-    def _prepare_player_obj(data, stats):
+    def _prepare_player_obj(self, data, stats):
         player_obj = {}
 
         player_obj['enc_puuid'] = data['puuid']
@@ -69,28 +69,39 @@ class RiotClient:
         return player_obj
 
 
-    def get_match_history(self, region, puuid, queue_type=None, num_matches=100):
-        '''
-        Gets match history for the specified player using their encrypted puuid
-        '''
-
-        matches = []
-        count = 0
-
-        # while True:
-        url = self._get_url(2, region, puuid, queue=queue_type, count=num_matches, start=count)
+    def _get_match_details(self, region, match_id):
+        url = self._get_url(5, region, match_id)
         print(url)
-            # resp = requests.get(url)
-            
-            # if len(resp.json()) < 100:
-            #     matches.append(resp.json())
-            #     break
 
-            # matches.append(resp.json())
 
-            # count+=100
-        # print(len(matches))
-        return json.dumps(matches)
+    def _get_all_matches(self):
+        pass
+
+
+    def get_match_history(self, region, puuid, queue_type=None, num_matches=20):
+        '''
+        Gets latest 20 matches for the specified player using their encrypted puuid
+        '''
+
+        table = 'matches'
+        query_type = 'ignore'
+
+        url = self._get_url(2, region, puuid, queue=queue_type, count=num_matches)
+        resp = requests.get(url)
+
+        if resp.status_code == 200:
+            matches = resp.json()
+            for match_id in matches:
+                insert(table, tuple([region, match_id, puuid]), query_type, Constants.constant_dict['table_cols'][table])
+
+                url = self._get_url(5, region, match_id)
+                resp = requests.get(url)
+
+
+
+            return json.dumps(matches)
+        else:
+            return {}
 
 
     def get_ranked_stats(self, region, enc_puuid, enc_id):
@@ -99,6 +110,7 @@ class RiotClient:
         '''
 
         table = 'ranked_stats'
+        query_type = 'replace'
 
         flex_stats = None
         solo_stats = None
@@ -121,7 +133,7 @@ class RiotClient:
 
             values += (flex_stats + solo_stats)
 
-            insert_or_update(table, values)
+            insert(table, values, query_type, Constants.constant_dict['table_cols'][table])
 
             combined_stats["flex"] = flex_stats
             combined_stats["solo"] = solo_stats
@@ -138,6 +150,7 @@ class RiotClient:
         '''
 
         table = 'summoners'
+        query_type = 'replace'
         
         # if datetime.now() - last_updated > '3days':
         try:
@@ -146,14 +159,13 @@ class RiotClient:
             riot_response = requests.get(url)
             if riot_response.status_code == 200:
                 data = riot_response.json()
-                
                 values = (
                     region, data['puuid'], data['name'], data['id'],
                     data['accountId'], data['summonerLevel'], data['profileIconId'],
                     data['revisionDate'], int(datetime.now().timestamp()*1000)
                 )
                 
-                insert_or_update(table, values)
+                insert(table, values, query_type, Constants.constant_dict['table_cols'][table])
 
                 stats = self.get_ranked_stats(region, data['puuid'], data['id'])
                 # match_list = self.get_match_history(region, data['puuid'])
@@ -180,6 +192,7 @@ class RiotClient:
                 return response
             
         except Exception as e:
+            print(e)
             response = Response(json.dumps({"msg": "Internal Server Error"}), mimetype='application/json')
             response.status_code = 500
             return response

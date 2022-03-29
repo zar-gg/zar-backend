@@ -1,18 +1,22 @@
 from utils import query_gen
 import sqlite3
 
-def insert_or_update(table, values):
-    conn = sqlite3.connect('./test_db/test.db')
+def insert(table, values, type, cols=None):
+    conn = sqlite3.connect('./src/test_db/test.db')
     cur = conn.cursor()
     
-    query = query_gen('replace', table, len(values))
+    if cols:
+        query = query_gen(type, table, len(values), cols)
+    else:
+        query = query_gen(type, table, len(values))
+
     cur.execute(query, values)     
     
     conn.commit()
     conn.close()
 
 def player_search(table, value):
-    conn = sqlite3.connect('./test_db/test.db')
+    conn = sqlite3.connect('./src/test_db/test.db')
     cur = conn.cursor()
     
     result = cur.execute(
@@ -25,7 +29,7 @@ def player_search(table, value):
     conn.close()
 
 def match_players(table, region, key):
-    conn = sqlite3.connect('./test_db/test.db')
+    conn = sqlite3.connect('./src/test_db/test.db')
     cur = conn.cursor()
     
     result = cur.execute(
