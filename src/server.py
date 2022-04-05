@@ -23,6 +23,7 @@ rc = RiotClient()
 def server_status():
     return {"status": "OK", "code": 200}
 
+
 @app.route("/get-player/<player_name>", methods=["GET"])
 # @cache.memoize(timeout=90)
 def get_player(player_name):
@@ -45,11 +46,13 @@ def get_players(key):
     return rc.get_players(request.args.get('region'),
                          key)
 
+
 @app.route("/get-ranked-stats/<player_id>", methods=["GET"])
 # @cache.memoize(timeout=90)
 def get_ranked_stats(player_id):
     return json.dumps(rc.get_ranked_stats(request.args.get('region'), 
                                           player_id))
+
 
 @app.route("/match-history/<puuid>", methods=["GET"])
 # @cache.memoize(timeout=90)
@@ -58,13 +61,14 @@ def get_matches(puuid):
                                            request.args.get('queue', None), 
                                            request.args.get('count', 5)))
 
+
 @app.route("/clash-details", methods=["GET"])
 # @cache.cached(timeout=90)
 def clash_details():
     return json.dumps(rc.get_clash_details(request.args.get('region')))
 
 
-if __name__ == '__main__':
+if __name__ == '__main__':    
     
     from dotenv import load_dotenv
 

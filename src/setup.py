@@ -78,9 +78,11 @@ if __name__ == '__main__':
                 (   
                     match_id text PRIMARY KEY,
                     queue_type text,
+                    patch text,
                     winning_team text,
                     losing_team text,
-                    
+                    match_created integer,
+
                     FOREIGN KEY (match_id) REFERENCES matches (match_id)
                     FOREIGN KEY (winning_team) REFERENCES teams (id)
                     FOREIGN KEY (losing_team) REFERENCES teams (id)

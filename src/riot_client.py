@@ -1,4 +1,3 @@
-from math import comb
 from constants import Constants
 from datetime import datetime
 import requests
@@ -7,6 +6,8 @@ import sqlite3
 from db_utils import insert, player_search, match_players
 import json
 from flask import Response
+from tasks import get_match_details
+import itertools
 
 class RiotClient:
     def __init__(self):
@@ -86,24 +87,32 @@ class RiotClient:
         table = 'matches'
         query_type = 'ignore'
 
-        url = self._get_url(2, region, puuid, queue=queue_type, count=num_matches)
-        resp = requests.get(url)
+        count = 0
+        matches = []
+        match = []
+        
+        while True:        
+            url = self._get_url(2, region, puuid, queue=queue_type, count=num_matches, start=count)
+            resp = requests.get(url)
 
-        if resp.status_code == 200:
-            matches = resp.json()
-            for match_id in matches:
-                insert(table, tuple([region, match_id, puuid]), query_type, Constants.constant_dict['table_cols'][table])
+            if len(resp.json()) < 100:
+                match.append(len(resp.json()))
+                matches.append(resp.json())
+                break
 
-                url = self._get_url(5, region, match_id)
-                resp = requests.get(url)
+            matches.append(resp.json())
+            match.append(len(resp.json()))
+            count+=100
 
+        match_list = list(itertools.chain.from_iterable(matches))
 
+        for match_id in match_list:
+            insert(table, tuple([region, match_id, puuid]), query_type, Constants.constant_dict['table_cols'][table])
 
-            return json.dumps(matches)
-        else:
-            return {}
+            get_match_details.delay('match_details', match_id, self._get_url(5, region, match_id), 'ignore', Constants.constant_dict['table_cols']['match_details'])
 
-
+        return json.dumps(match_list)
+        
     def get_ranked_stats(self, region, enc_puuid, enc_id):
         '''
         Gets ranked queue stats for the specified player using their encrypted id

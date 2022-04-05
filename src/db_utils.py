@@ -1,8 +1,21 @@
-from utils import query_gen
 import sqlite3
 
-def insert(table, values, type, cols=None):
-    conn = sqlite3.connect('./src/test_db/test.db')
+def query_gen(type, table, num_params, cols):
+    query_str = None
+    if type == 'replace':
+        query_str = '''REPLACE INTO {} {} VALUES '''.format(table, cols)
+        param_str = '({})'
+        query_str += param_str.format(", ".join(['?' for _ in range(num_params)]))
+
+    elif type == 'ignore':
+        query_str = '''INSERT or IGNORE  INTO {} {} VALUES '''.format(table, cols)
+        param_str = '({})'
+        query_str += param_str.format(", ".join(['?' for _ in range(num_params)]))
+
+    return query_str
+
+def insert(table, values, type, cols=None, db_path='./src/test_db/test.db'):
+    conn = sqlite3.connect(db_path)
     cur = conn.cursor()
     
     if cols:
@@ -15,8 +28,8 @@ def insert(table, values, type, cols=None):
     conn.commit()
     conn.close()
 
-def player_search(table, value):
-    conn = sqlite3.connect('./src/test_db/test.db')
+def player_search(table, value, db_path='./src/test_db/test.db'):
+    conn = sqlite3.connect(db_path)
     cur = conn.cursor()
     
     result = cur.execute(
@@ -28,8 +41,8 @@ def player_search(table, value):
     print(*result)
     conn.close()
 
-def match_players(table, region, key):
-    conn = sqlite3.connect('./src/test_db/test.db')
+def match_players(table, region, key, db_path='./src/test_db/test.db'):
+    conn = sqlite3.connect(db_path)
     cur = conn.cursor()
     
     result = cur.execute(
