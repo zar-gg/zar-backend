@@ -23,25 +23,46 @@ services:
     command: python frontend_server.py
  
   worker:
-    build: .
-    command: celery --app src.tasks.celery worker --loglevel=info --logfile=src/logs/celery.log
+    build:
+      context: .
+      dockerfile: Dockerfile-celery
+    command: celery worker --loglevel=info --logfile=logs/celery_worker.log
     volumes:
       - .:/usr/zar-gg
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_APP=tasks.celery
+    depends_on:
+      - backend
+      - redis
+
+  beat:
+    build:
+      context: .
+      dockerfile: Dockerfile-celery
+    command: celery beat --loglevel=info --logfile=logs/celery_beat.log
+    volumes:
+      - .:/usr/zar-gg
+    environment:
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_APP=tasks.celery
     depends_on:
       - backend
       - redis
 
   dashboard:
-    build: .
-    command: celery --broker=redis://redis:6379/0 --app src.tasks.celery flower --port=5555 
+    build:
+      context: .
+      dockerfile: Dockerfile-celery
+    command: celery --broker=redis://redis:6379/0 flower --port=5555 
     ports:
       - 5556:5555
     environment:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_APP=tasks.celery
     depends_on:
       - backend
       - redis
