@@ -3,23 +3,18 @@ import time
 import requests
 from celery import Celery
 from db_utils import insert
-from datetime import timedelta
 from constants import Constants
+import periodic_tasks.celeryconfig as periodic_conf
 
 celery = Celery(__name__)
 celery.conf.broker_url = os.environ.get("CELERY_BROKER_URL", "redis://redis:6379")
 celery.conf.result_backend = os.environ.get("CELERY_RESULT_BACKEND", "redis://redis:6379")
+celery.config_from_object(periodic_conf)
 
-CELERYBEAT_SCHEDULE = {
-    'add-every-5-seconds': {
-        'task': 'tasks.add',
-        'schedule': timedelta(seconds=10)
-    },
-}
-
-@celery.task(name='tasks.add')
+@celery.task(name='test')
 def test():
-    print('llol')
+    time.sleep(5)
+    return True
 
 @celery.task(name="create_task")
 def create_task(task_type):
