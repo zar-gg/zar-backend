@@ -8,7 +8,7 @@ up:
 down:
 	docker-compose down --remove-orphans
 
-update-key:
+key:
 	@echo "Enter new API Key: "; \
 	read KEY; \
 	echo "API_KEY=$$KEY" > .env;	
