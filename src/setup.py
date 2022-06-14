@@ -40,23 +40,17 @@ if __name__ == '__main__':
                 )
                 ''') 
 
-    cur.execute('''CREATE TABLE matches
-                (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    region text,
-                    match_id text,
-                    enc_puuid text,
-                    
-                    UNIQUE(match_id, enc_puuid)
-                    FOREIGN KEY (enc_puuid) REFERENCES summoners (enc_puuid)
-                )
-                ''')
+    # cur.execute('''CREATE TABLE matches
+    #             (
+    #                 match_id text PRIMARY KEY,
+    #                 region text,    
+    #             )
+    #             ''')
 
     cur.execute('''CREATE TABLE teams
                 (   
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    id text PRIMARY KEY,
                     match_id text,
-                    queue_type text,
                     riot_teamId text,
                     victorious bool,
                     top text,
@@ -66,26 +60,47 @@ if __name__ == '__main__':
                     supp text,
 
                     FOREIGN KEY (match_id) REFERENCES matches (match_id)
-                    FOREIGN KEY (top) REFERENCES summoners (enc_account_id)
-                    FOREIGN KEY (jungle) REFERENCES summoners (enc_account_id)
-                    FOREIGN KEY (mid) REFERENCES summoners (enc_account_id)
-                    FOREIGN KEY (adc) REFERENCES summoners (enc_account_id)
-                    FOREIGN KEY (supp) REFERENCES summoners (enc_account_id)
+                    FOREIGN KEY (top) REFERENCES player (id)
+                    FOREIGN KEY (jungle) REFERENCES player (id)
+                    FOREIGN KEY (mid) REFERENCES player (id)
+                    FOREIGN KEY (adc) REFERENCES player (id)
+                    FOREIGN KEY (supp) REFERENCES player (id)
                 )
                 ''')
 
-    cur.execute('''CREATE TABLE match_details
+    cur.execute('''CREATE TABLE player_ingame_details
+                (   
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    enc_puuid text,
+                    champ_id integer,
+                    champLevel integer,
+                    champName text,
+                    lane text,
+
+                    FOREIGN KEY (enc_puuid) REFERENCES summoners (enc_puuid)
+                )
+                ''')
+
+    cur.execute('''CREATE TABLE matches
                 (   
                     match_id text PRIMARY KEY,
                     queue_type text,
                     patch text,
                     winning_team text,
                     losing_team text,
+                    match_duration integer,
                     match_created integer,
 
-                    FOREIGN KEY (match_id) REFERENCES matches (match_id)
                     FOREIGN KEY (winning_team) REFERENCES teams (id)
                     FOREIGN KEY (losing_team) REFERENCES teams (id)
+                )
+                ''')
+
+    cur.execute('''CREATE TABLE version_data
+                (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    latest_version text,
+                    last_updated integer
                 )
                 ''')
 

@@ -1,3 +1,4 @@
+from nis import match
 from constants import Constants
 from datetime import datetime
 import requests
@@ -6,8 +7,10 @@ import sqlite3
 from db_utils import insert, player_search, match_players
 import json
 from flask import Response
-from tasks import get_match_details
+from tasks import get_team_details, add_player_details
 import itertools
+import uuid
+
 
 class RiotClient:
     def __init__(self):
@@ -57,63 +60,84 @@ class RiotClient:
         return "{}{}{}".format(base_url, endpoint, query_params)
 
 
-    def _prepare_player_obj(self, data, stats):
+    def _prepare_player_obj(self, data=None, stats=None, **kwargs):
         player_obj = {}
 
-        player_obj['enc_puuid'] = data['puuid']
-        player_obj['enc_id'] = data['id']
-        player_obj['name'] = data['name']
-        player_obj['level'] = data['summonerLevel']
-        player_obj['iconId'] = data['profileIconId']
-        player_obj['stats'] = stats
-
+        if kwargs.get('player_data', None):
+            player_obj['enc_puuid'] = kwargs['player_data'][0]
+            player_obj['enc_id'] = kwargs['player_data'][1]
+            player_obj['name'] = kwargs['player_data'][2]
+            player_obj['level'] = kwargs['player_data'][3]
+            player_obj['iconId'] = kwargs['player_data'][4]
+            
+            player_obj['stats'] = {}
+            player_obj['stats']['flex'] = [kwargs['player_data'][5], kwargs['player_data'][6], kwargs['player_data'][7], kwargs['player_data'][8], kwargs['player_data'][9], bool(int(kwargs['player_data'][10]))]
+            player_obj['stats']['solo'] = [kwargs['player_data'][11], kwargs['player_data'][12], kwargs['player_data'][13], kwargs['player_data'][14], kwargs['player_data'][15], bool(int(kwargs['player_data'][16]))]
+        
+        else:
+            player_obj['enc_puuid'] = data['puuid']
+            player_obj['enc_id'] = data['id']
+            player_obj['name'] = data['name']
+            player_obj['level'] = data['summonerLevel']
+            player_obj['iconId'] = data['profileIconId']
+            player_obj['stats'] = stats
+        
         return player_obj
-
-
-    def _get_match_details(self, region, match_id):
-        url = self._get_url(5, region, match_id)
-        print(url)
 
 
     def _get_all_matches(self):
         pass
 
 
-    def get_match_history(self, region, puuid, queue_type=None, num_matches=20):
+    def get_match_history(self, region, puuid, queue_type=None, num_matches=10, start=0):
         '''
-        Gets latest 20 matches for the specified player using their encrypted puuid
+        Gets latest 10 matches for the specified player using their encrypted puuid
         '''
 
         table = 'matches'
         query_type = 'ignore'
 
-        count = 0
         matches = []
-        match = []
-        
-        while True:        
-            url = self._get_url(2, region, puuid, queue=queue_type, count=num_matches, start=count)
-            resp = requests.get(url)
 
-            if len(resp.json()) < 100:
-                match.append(len(resp.json()))
-                matches.append(resp.json())
-                break
+        url = self._get_url(2, region, puuid, queue=queue_type, count=num_matches, start=start)
+        resp = requests.get(url)
 
-            matches.append(resp.json())
-            match.append(len(resp.json()))
-            count+=100
-
+        matches.append(resp.json())
         match_list = list(itertools.chain.from_iterable(matches))
-
-        for match_id in match_list:
-            insert(table, tuple([region, match_id, puuid]), query_type, Constants.constant_dict['table_cols'][table])
-
-            get_match_details.delay('match_details', match_id, self._get_url(5, region, match_id), 'ignore', Constants.constant_dict['table_cols']['match_details'])
-
-        return json.dumps(match_list)
         
-    def get_ranked_stats(self, region, enc_puuid, enc_id):
+        match_dts = []
+        for match_id in match_list:
+            # if already in db
+            # return data from db
+            
+            # else
+            url = self._get_url(5, region, match_id)
+            data = requests.get(url).json()
+            details = {}
+
+            details['id'] = match_id
+            details['mode'] = Constants.constant_dict['id_queues'].get(str(data['info']['queueId']), 'undefined_mode')
+            details['patch'] = data['info']['gameVersion'].split('.')[0]
+            details['player_details'] = [details for details in data['info']['participants'] if details['puuid'] == puuid][0]
+            for team in data['info']['teams']:
+                if team['win']:
+                    details['win_team'] = team['teamId'] 
+                    details['win_team_uuid'] = uuid.uuid4().hex
+                    get_team_details.delay('teams', match_id, details['win_team_uuid'], data, 'ignore', Constants.constant_dict['table_cols']['teams'], details['win_team'], win=True)
+
+                else:
+                    details['lose_team'] = team['teamId']
+                    details['lose_team_uuid'] = uuid.uuid4().hex
+                    get_team_details.delay('teams', match_id, details['lose_team_uuid'], data, 'ignore', Constants.constant_dict['table_cols']['teams'], details['lose_team'], win=False)
+
+            details['matchCreated'] = data['info']['gameCreation']
+            details['matchDuration'] = data['info']['gameDuration']
+            
+            insert(table, tuple([match_id,details['mode'],details['patch'],details['win_team_uuid'],details['lose_team_uuid'],details['matchDuration'],details['matchCreated']]), query_type, Constants.constant_dict['table_cols'][table])
+            match_dts.append(details)
+        return {'match_data': match_dts}
+        
+    def _get_ranked_stats(self, region, enc_puuid, enc_id):
         '''
         Gets ranked queue stats for the specified player using their encrypted id
         '''
@@ -151,7 +175,6 @@ class RiotClient:
         else:
             return {}
 
-
     def get_player(self, region, name):
         '''
         Gets a player from the specified region using their in-game name
@@ -163,42 +186,49 @@ class RiotClient:
         
         # if datetime.now() - last_updated > '3days':
         try:
-            url = self._get_url(1, region, name)
-            # player_search(table, name)
-            riot_response = requests.get(url)
-            if riot_response.status_code == 200:
-                data = riot_response.json()
-                values = (
-                    region, data['puuid'], data['name'], data['id'],
-                    data['accountId'], data['summonerLevel'], data['profileIconId'],
-                    data['revisionDate'], int(datetime.now().timestamp()*1000)
-                )
-                
-                insert(table, values, query_type, Constants.constant_dict['table_cols'][table])
+            player_data = player_search(table, name)
 
-                stats = self.get_ranked_stats(region, data['puuid'], data['id'])
-                # match_list = self.get_match_history(region, data['puuid'])
-                
-                player_obj = self._prepare_player_obj(data, stats)
-                
+            if player_data:
+                player_obj = self._prepare_player_obj(player_data=player_data)
                 response = Response(json.dumps(player_obj), mimetype='application/json')
-                response.status_code = 200
                 return response
-            
-            elif riot_response.status_code == 403:
-                response = Response(json.dumps({"msg": "Auth failed, check API Key."}), mimetype='application/json')
-                response.status_code = 403
-                return response
-
-            elif riot_response.status_code == 404:
-                response = Response(json.dumps({"msg": "Player not found"}), mimetype='application/json')
-                response.status_code = 404
-                return response
-
+                
             else:
-                response = Response(json.dumps({"msg": "Undefined Error", "status_code": riot_response.status_code, "riot_resp": riot_response.json()}), mimetype='application/json')
-                response.status_code = 500
-                return response
+                url = self._get_url(1, region, name)
+                riot_response = requests.get(url)
+                if riot_response.status_code == 200:
+                    data = riot_response.json()
+                    values = (
+                        region, data['puuid'], data['name'], data['id'],
+                        data['accountId'], data['summonerLevel'], data['profileIconId'],
+                        data['revisionDate'], int(datetime.now().timestamp()*1000)
+                    )
+                    
+                    add_player_details.delay(table, values, query_type)
+                    # insert(table, values, query_type, Constants.constant_dict['table_cols'][table])
+
+                    stats = self._get_ranked_stats(region, data['puuid'], data['id'])
+                    match_list = []
+                    player_obj = self._prepare_player_obj(data, stats)
+                    
+                    response = Response(json.dumps(player_obj,player), mimetype='application/json')
+                    response.status_code = 200
+                    return response
+                
+                elif riot_response.status_code == 403:
+                    response = Response(json.dumps({"msg": "Auth failed, check API Key."}), mimetype='application/json')
+                    response.status_code = 403
+                    return response
+
+                elif riot_response.status_code == 404:
+                    response = Response(json.dumps({"msg": "Player not found"}), mimetype='application/json')
+                    response.status_code = 404
+                    return response
+
+                else:
+                    response = Response(json.dumps({"msg": "Undefined Error", "status_code": riot_response.status_code, "riot_resp": riot_response.json()}), mimetype='application/json')
+                    response.status_code = 500
+                    return response
             
         except Exception as e:
             print(e)

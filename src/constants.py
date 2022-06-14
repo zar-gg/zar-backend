@@ -65,16 +65,20 @@ class Constants:
             "2010":"lol_tutorial_2-summoners_rift",
             "2020":"lol_tutorial_3-summoners_rift",
         },
+        "team_ids": {
+            100: "Blue",
+            200: "Red"   
+        },
         "ddragon_versions": "https://ddragon.leagueoflegends.com/api/versions.json", #returns array containing all versions
         "ddragon_region_version": "https://ddragon.leagueoflegends.com/realms/{}.json", #region_name (euw/na/kr)
         "ddragon_endpoint": "http://ddragon.leagueoflegends.com/cdn/{}/data/en_US/", #ddragon version
-    
+        "ddragon_item_assets": "https://ddragon.leagueoflegends.com/cdn/{}/img/item/{}.png",#version, item_id
+        
         "table_cols": {
-            "matches": "(region, match_id, enc_puuid)",
             "summoners": "(region, enc_puuid, name, enc_account_id, enc_summoner_id, level, profile_icon_id, revision_date, last_updated)",
             "ranked_stats": "(enc_puuid, flex_tier, flex_rank, flex_wins, flex_losses, flex_lp, flex_hotstreak, solo_tier, solo_rank, solo_wins, solo_losses, solo_lp, solo_hotstreak)",
-            "teams": "(match_id, queue_type, riot_teamId, victorious, top, jungle, mid, adc, supp)",
-            "match_details": "(match_id, queue_type, patch, winning_team, losing_team, match_created)",
+            "teams": "(id, match_id, riot_teamId, victorious, top, jungle, mid, adc, supp)",
+            "matches": "(match_id, queue_type, patch, winning_team, losing_team, match_duration, match_created)",
+            "version_data": "(latest_version, last_updated)",
         },
-        "latest_patch":12,
     }

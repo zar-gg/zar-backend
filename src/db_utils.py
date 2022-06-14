@@ -34,12 +34,18 @@ def player_search(table, value, db_path='./src/test_db/test.db'):
     
     result = cur.execute(
         '''
-        SELECT * FROM {} WHERE name='{}'
+        SELECT summ.enc_puuid, summ.enc_account_id, summ.name, summ.level, summ.profile_icon_id, 
+        rs.flex_tier, rs.flex_rank, rs.flex_wins, rs.flex_losses, rs.flex_lp, rs.flex_hotstreak, 
+        rs.solo_tier, rs.solo_rank, rs.solo_wins, rs.solo_losses, rs.solo_lp, rs.solo_hotstreak
+        FROM {} as summ
+        INNER JOIN ranked_stats as rs
+        ON summ.enc_puuid = rs.enc_puuid
+        WHERE summ.name='{}' COLLATE NOCASE
         '''.format(table, value)
     )    
-    
-    print(*result)
+    resp = result.fetchone()
     conn.close()
+    return resp
 
 def match_players(table, region, key, db_path='./src/test_db/test.db'):
     conn = sqlite3.connect(db_path)
